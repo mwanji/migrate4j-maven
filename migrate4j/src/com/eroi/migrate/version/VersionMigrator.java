@@ -21,6 +21,7 @@ public class VersionMigrator {
 		
 		myConfig.setPackageName(myPackage);
 		myConfig.setProjectID(myPackage);
+		myConfig.setClassprefix("Migration");
 		
 		Engine.migrate(myConfig);
 	}

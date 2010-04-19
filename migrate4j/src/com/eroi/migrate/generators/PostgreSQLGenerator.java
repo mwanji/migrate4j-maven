@@ -62,6 +62,9 @@ public class PostgreSQLGenerator extends GenericGenerator {
 			case Types.BLOB:
 				sqlType = "BYTEA";
 				break;
+			case Types.DOUBLE:
+				sqlType = "DOUBLE PRECISION";
+				break;
 			default:
 				sqlType=GeneratorHelper.getSqlName(type);
 		} 

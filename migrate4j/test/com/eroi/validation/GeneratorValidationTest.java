@@ -381,6 +381,24 @@ public class GeneratorValidationTest extends TestCase {
 		assertFalse(Execute.tableExists(Migration_9.NEW_TABLE_NAME));
 	}
 	
+	public void testDBSpecificMigration_Version9To10() throws Exception {
+		writeTestStart("DB-specific Migration");
+		
+		String dbName = getDBProduct().replace(' ', '_').toLowerCase();
+		
+		Engine.migrate(9);
+		
+		assertFalse(Execute.tableExists(dbName));
+		
+		Engine.migrate(10);
+		
+		assertTrue(Execute.tableExists(dbName));
+		
+		Engine.migrate(9);
+		
+		assertFalse(Execute.tableExists(dbName));
+	}
+	
 	/** ------------- Helper Methods ---------------- **/
 	private void insertDescIntoBasicTable() throws SQLException {
 		Statement s = null;
@@ -445,6 +463,10 @@ public class GeneratorValidationTest extends TestCase {
 		writeToFile("PASS");		
 	}
 	
+	private String getDBProduct() throws SQLException {
+		return this.connection.getMetaData().getDatabaseProductName();
+	}
+
 	private static void writeToFile(String message) {
 		
 		File file = new File(REPORT_FILE_NAME);

@@ -3,6 +3,8 @@ package com.eroi.migrate;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.eroi.migrate.misc.Log;
@@ -205,7 +207,6 @@ public class Engine {
 		VersionQuery.updateVersion(this.config, lastVersion);
 	}
 
-	@SuppressWarnings("unchecked")
 	private List<Class<? extends Migration>> _classesToMigrate() {
 		
 		List<Class<? extends Migration>> retVal = new ArrayList<Class<? extends Migration>>();
@@ -218,19 +219,22 @@ public class Engine {
 		if (loader==null) {
 			loader = Engine.class.getClassLoader();
 		}
-		
+
+		String rdbms = _getDBProductName();
+		Class<? extends AbstractMigration> migClazz;
 		while (true) {
 			String classname = baseName + item;
 			
-			log.debug("Looking for classname " + classname);
+			log.debug("Looking for classname " + classname + " and " + classname + "$" + rdbms);
 			
-			try {
-				
-				Class clazz = Class.forName(classname,false,loader);
-				retVal.add(clazz);
-				
+			migClazz = _getMigrationClass(classname + "$" + rdbms, loader);
+			if (migClazz == null) {
+				migClazz = _getMigrationClass(classname, loader);
+			}
+			if (migClazz != null) {
+				retVal.add(migClazz);
 				log.debug("Found classname " + classname);
-			} catch (Exception e) {
+			} else {
 				log.debug("Assuming there are no files including or beyond " + classname);
 				break;
 			}
@@ -240,47 +244,71 @@ public class Engine {
 		return retVal;
 	}
 	
+	@SuppressWarnings("unchecked")
+	private Class<? extends AbstractMigration> _getMigrationClass(String clazzName, ClassLoader loader) {
+		Class<? extends AbstractMigration> result;
+		try {
+
+			result = (Class<? extends AbstractMigration>) Class.forName(clazzName, true, loader);
+		} catch (ClassNotFoundException e) {
+			result = null;
+		}
+		
+		return result;
+	}
+	
+	private String _getDBProductName() {
+		try {
+			Connection connection = this.config.getConnection();
+			if (connection != null) {
+				return connection.getMetaData().getDatabaseProductName().replace(' ', '_');
+			} else {
+				return "";
+			}
+		} catch (Exception e) {
+			throw new SchemaMigrationException("Cannot determine Database product name", e);
+		}
+	}
+
 	private List<Class<? extends Migration>> _orderMigrations(List<Class<? extends Migration>> migrationClasses, int currentVersion, int targetVersion) {
 		
-		List<Class<? extends Migration>> retVal = new ArrayList<Class<? extends Migration>>();
-		String baseName = this.config.getBaseClassName();
-		boolean goUp = true;
-		
-		String startClass = baseName + (currentVersion + 1);
-		String endClass = baseName + targetVersion;
-		
-		if (!_isUpMigration(currentVersion, targetVersion)) {
-
-			//Going down
-			startClass = baseName + (targetVersion + 1);
-			endClass = baseName + currentVersion;
-			goUp = false;
-			
+		if (currentVersion == targetVersion) {
+			// nothing to do :-)
+			return Collections.emptyList(); 
 		}
+		
+		List<Class<? extends Migration>> retVal = new ArrayList<Class<? extends Migration>>();
+
+		// get direction
+		final boolean goUp = targetVersion > currentVersion;
+		
+		// sort classes according to their version prefix and according to the direction
+		Collections.sort(migrationClasses, new Comparator<Class<? extends Migration>>() {
+			// sort by number prefixes: Migration_xyz
 			
-		boolean hasStarted = false;
-			
-		for (Class<? extends Migration> clazz  : migrationClasses) {
-			
-			if (!hasStarted) {
-				
-				if (clazz.getName().equals(startClass)) {
-					//Just set this to true - the class 
-					//will be collected in the next "if" 
-					hasStarted = true;
+			public int compare(Class<? extends Migration> c1, Class<? extends Migration> c2) {
+				int num1 = _getVersionNumber(c1.getName());
+				int num2 = _getVersionNumber(c2.getName());
+
+				assert(num1 != num2); // can never happen!
+				if ((num1 > num2 && goUp) || (num1 < num2 && !goUp)) {
+					return +1;
+				} else {
+					return -1;
 				}
 			}
 			
-			if (hasStarted) {
-				
-				int index = goUp? retVal.size() : 0;
-				retVal.add(index, clazz);
-				
-				if (clazz.getName().equals(endClass)) {
-					//We've already got the class, so
-					//just get out
-					break;
-				}
+		});
+		
+		// ]min:max] is the version-range, regardless the direction!
+		int min = Math.min(currentVersion, targetVersion);
+		int max = Math.max(currentVersion, targetVersion);
+		for (Class<? extends Migration> migClazz : migrationClasses) {
+			int ver = _getVersionNumber(migClazz.getName());
+
+			// add classes which are in the range 
+			if (ver > min && ver <= max) {
+				retVal.add(migClazz);
 			}
 		}
 		
@@ -292,6 +320,12 @@ public class Engine {
 		
 		String baseName = this.config.getBaseClassName();
 		
+		int pos = classname.indexOf('$');
+		if (pos > 0) {
+			// nested (DB-specific) migration class
+			classname = classname.substring(0, pos);
+		}
+
 		if (classname.startsWith(baseName)) {
 			String id = classname.substring(baseName.length());
 			

@@ -7,8 +7,8 @@ import junit.framework.TestCase;
 public class EngineTest extends TestCase {
 	
 	public void testGetMigrationClasses_UsingDefaults() {
-		Configure.configure("jdbc:mysql://localhost:3306/mydb", 
-										 "com.mysql.jdbc.Driver", 
+		Configure.configure("jdbc:derby:testDerby;create=true", 
+										 "org.apache.derby.jdbc.EmbeddedDriver", 
 										 "user", 
 										 "password", 
 										 null,
@@ -30,8 +30,8 @@ public class EngineTest extends TestCase {
 	}
 	
 	public void testGetMigrations_UsingClassPrefixThatDoesNotExist() {
-		Configure.configure("jdbc:mysql://localhost:3306/mydb", 
-								"com.mysql.jdbc.Driver", 
+		Configure.configure("jdbc:derby:testDerby;create=true", 
+								"org.apache.derby.jdbc.EmbeddedDriver", 
 								"user", 
 								"password", 
 								null,
@@ -47,8 +47,8 @@ public class EngineTest extends TestCase {
 	}
 	
 	public void testClassesToMigrate_UsingCustomSeparator() {
-		Configure.configure("jdbc:mysql://localhost:3306/mydb", 
-								"com.mysql.jdbc.Driver", 
+		Configure.configure("jdbc:derby:testDerby;create=true", 
+								"org.apache.derby.jdbc.EmbeddedDriver", 
 								"user", 
 								"password", 
 								null,
@@ -162,8 +162,8 @@ public class EngineTest extends TestCase {
 /* ----------------- Helper Methods ---------------*/
 	
 	private List<Class<? extends Migration>> getClassesToMigrate() {
-		Configure.configure("jdbc:mysql://localhost:3306/mydb", 
-								   "com.mysql.jdbc.Driver",
+		Configure.configure("jdbc:derby:testDerby;create=true", 
+								   "org.apache.derby.jdbc.EmbeddedDriver",
 								   "user",
 								   "password",
 									"com.eroi.migrate.testpackage"); 
