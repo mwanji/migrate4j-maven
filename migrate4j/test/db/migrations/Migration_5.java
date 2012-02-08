@@ -23,8 +23,8 @@ public class Migration_5 implements Migration {
 	public static final String FOREIGN_KEY_NAME = ForeignKey.createName(PARENT_TABLE_NAME, CHILD_TABLE_NAME, new String[] { PARENT_COLUMN_KEY });
 	
 	public void up() {
-		Execute.createTable(getPersonTable(), "ENGINE=InnoDb");
-		Execute.createTable(getEmployeeTable(), "ENGINE=InnoDb");
+		Execute.createTable(getPersonTable());
+		Execute.createTable(getEmployeeTable());
 		Execute.addForeignKey(getForeignKey());
 	}
 	

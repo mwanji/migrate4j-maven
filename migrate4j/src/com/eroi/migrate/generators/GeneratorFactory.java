@@ -15,6 +15,8 @@ public class GeneratorFactory {
             return new SybaseGenerator(connection);
         } else if ("MySQL".equalsIgnoreCase(dbName)) {
             return new MySQLGenerator(connection);
+        } else if ("Oracle".equalsIgnoreCase(dbName)) {
+            return new OracleGenerator(connection);
         } else if ("Apache Derby".equalsIgnoreCase(dbName)) {
         	return new DerbyGenerator(connection);
         } else if ("PostgreSQL".equalsIgnoreCase(dbName)) {
@@ -25,6 +27,5 @@ public class GeneratorFactory {
         	}
             return new GenericGenerator(connection);
         }
-
     }
 }

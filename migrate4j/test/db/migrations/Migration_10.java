@@ -101,5 +101,17 @@ public class Migration_10 extends AbstractMigration {
 			dropTable("sql_anywhere");
 		}
 	}
-	
+
+	public static class Oracle extends Migration_10 {
+		
+		@Override
+		public void up() {
+			createTable(table("oracle", getColumns()));
+		}
+		
+		@Override
+		public void down() {
+			dropTable("oracle");
+		}
+	}
 }

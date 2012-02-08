@@ -24,6 +24,7 @@ public class GeneratorHelper {
 		types = new HashMap<Integer, String>();
 		types.put(new Integer(Types.BIGINT), "BIGINT");
 		types.put(new Integer(Types.BLOB), "BLOB");
+		types.put(new Integer(Types.CLOB), "CLOB");
 		types.put(new Integer(Types.BOOLEAN), "BOOL");
 		types.put(new Integer(Types.CHAR), "CHAR");
 		types.put(new Integer(Types.DATE), "DATE");
