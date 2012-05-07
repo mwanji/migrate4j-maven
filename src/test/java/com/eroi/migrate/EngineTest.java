@@ -5,6 +5,12 @@ import java.util.List;
 import junit.framework.TestCase;
 
 public class EngineTest extends TestCase {
+  
+  @Override
+  protected void tearDown() throws Exception {
+    // Connection nulled out so it isn't accidentally re-used in other tests
+    Configure.getDefaultConfiguration().setConnection(null);
+  }
 	
 	public void testGetMigrationClasses_UsingDefaults() {
 		Configure.configure("jdbc:derby:testDerby;create=true", 

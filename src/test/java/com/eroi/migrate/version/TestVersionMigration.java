@@ -164,7 +164,7 @@ public class TestVersionMigration extends TestCase {
 		assertTrue(1 == VersionQuery.getVersion(this.config, "db.migrations"));
 
 		// check migrated table
-		assertTrue(Execute.tableExists(Migration_1.TABLE_NAME));
+		assertTrue(Execute.tableExists(getConnection(), Migration_1.TABLE_NAME));
 		
 		// 
 		// migrate down
@@ -196,7 +196,7 @@ public class TestVersionMigration extends TestCase {
 		String versionTable = _getNewVersionTable();
 		String versionTableOld = this.config.getVersionTable();
 		
-		assertFalse(Execute.tableExists(versionTable));
+		assertFalse(Execute.tableExists(getConnection(), versionTable));
 		
 		_createOldStyleVersionTable(4);
 
@@ -229,7 +229,7 @@ public class TestVersionMigration extends TestCase {
 		// Well in createOldStyleVersionTable() we created a version table artificially with version = 4, however the migrations 1-4 never happened! 
 		// The fact that table from migration 1 does not exist while the tables from migration 5 do exist proofs that the migration continues the existing migration
 		// which is labeled 'COM_EROI_MIGRATE_UNSPECIFIED'
-		assertFalse(Execute.tableExists(Migration_1.TABLE_NAME));
+		assertFalse(Execute.tableExists(getConnection(), Migration_1.TABLE_NAME));
 		assertTrue(Execute.tableExists(Migration_5.PARENT_TABLE_NAME));
 		assertTrue(Execute.tableExists(Migration_5.CHILD_TABLE_NAME));
 		
